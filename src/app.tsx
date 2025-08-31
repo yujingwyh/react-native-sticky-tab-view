@@ -9,7 +9,8 @@ import { useSharedValue } from 'react-native-reanimated';
 export const App = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const pagerViewRef = useRef<PagerView>(null);
-  const tabOffset = useSharedValue(0);
+  const tabCurrentY = useSharedValue(0);
+  const tabStartY = useSharedValue(0);
 
   const onTabChange = (index: number) => {
     setActiveIndex(index);
@@ -21,9 +22,9 @@ export const App = () => {
 
   return (
     <React.Fragment>
-      <Header tabOffset={tabOffset}></Header>
+      <Header tabCurrentY={tabCurrentY}></Header>
       <TabBar
-        tabOffset={tabOffset}
+        tabCurrentY={tabCurrentY}
         activeIndex={activeIndex}
         onTabChange={onTabChange}
       />
@@ -36,7 +37,8 @@ export const App = () => {
         {tabItems.map((tab, index) => (
           <View key={tab.value}>
             <TabItem
-              tabOffset={tabOffset}
+              tabCurrentY={tabCurrentY}
+              tabStartY={tabStartY}
               tab={tab}
               isActive={activeIndex === index}
             />

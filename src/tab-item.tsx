@@ -1,5 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { SharedValue, useAnimatedScrollHandler, } from 'react-native-reanimated';
+import Animated, {
+  scrollTo,
+  SharedValue,
+  useAnimatedReaction,
+  useAnimatedRef,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { useLayoutEffect } from 'react';
 
 interface Props {
   isActive: boolean;
@@ -7,22 +15,75 @@ interface Props {
     label: string;
     value: string;
   };
-  tabOffset: SharedValue<number>;
+  tabCurrentY: SharedValue<number>;
+  tabStartY: SharedValue<number>;
 }
 
+const data = Array.from({ length: 100 }, (_, i) => `item-${i}`);
+const maxOffsetY = 200;
+
 export const TabItem = (props: Props) => {
-  const { isActive, tabOffset } = props;
-  const data = Array.from({ length: 100 }, (_, i) => `item-${i}`);
+  const { tabCurrentY, tabStartY } = props;
+  const flatListRef = useAnimatedRef<Animated.FlatList>();
+  const isActive = useSharedValue(props.isActive);
+
+  const scrollEndY = useSharedValue(0);
+  const scrollCurrentY = useSharedValue(0);
+
   const scrollHandler = useAnimatedScrollHandler({
-    onScroll: event => {
-      if (isActive) {
-        tabOffset.value = event.contentOffset.y;
-      }
+    onBeginDrag() {
+      tabStartY.value = tabCurrentY.value;
+    },
+    onScroll(event) {
+      scrollCurrentY.value = event.contentOffset.y;
+    },
+    onMomentumEnd(event) {
+      scrollEndY.value = event.contentOffset.y;
     },
   });
 
+  useAnimatedReaction(
+    () => ({
+      scrollCurrentYValue: scrollCurrentY.value,
+    }),
+    current => {
+      if (isActive.value) {
+        if (current.scrollCurrentYValue <= maxOffsetY) {
+          tabCurrentY.value = current.scrollCurrentYValue;
+        }
+      }
+    },
+  );
+
+  useAnimatedReaction(
+    () => ({
+      tabStartYValue: tabStartY.value,
+    }),
+    () => {
+      scrollEndY.value = scrollCurrentY.value;
+    },
+  );
+
+  useAnimatedReaction(
+    () => ({
+      tabCurrentYValue: tabCurrentY.value,
+    }),
+    current => {
+      if (!isActive.value) {
+        const diff = current.tabCurrentYValue - tabStartY.value;
+        scrollCurrentY.value = scrollEndY.value + diff;
+        scrollTo(flatListRef, 0, scrollCurrentY.value, false);
+      }
+    },
+  );
+
+  useLayoutEffect(() => {
+    isActive.value = props.isActive;
+  }, [props.isActive]);
+
   return (
     <Animated.FlatList
+      ref={flatListRef}
       style={styles.flatList}
       data={data}
       keyExtractor={item => item}

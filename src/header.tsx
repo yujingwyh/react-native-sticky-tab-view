@@ -8,14 +8,14 @@ import Animated, {
 import React from 'react';
 
 interface Props {
-  tabOffset: SharedValue<number>;
+  tabCurrentY: SharedValue<number>;
 }
 
 export const Header = (props: Props) => {
-  const { tabOffset } = props;
+  const { tabCurrentY } = props;
   const animatedStyle = useAnimatedStyle(() => {
     const translateY = interpolate(
-      tabOffset.value,
+      tabCurrentY.value,
       [0, 200],
       [0, -200],
       Extrapolation.CLAMP,

@@ -9,7 +9,7 @@ import Animated, {
 interface Props {
   activeIndex: number;
   onTabChange: (activeIndex: number) => void;
-  tabOffset: SharedValue<number>;
+  tabCurrentY: SharedValue<number>;
 }
 
 export const tabItems = [
@@ -18,10 +18,10 @@ export const tabItems = [
 ];
 
 export const TabBar = (props: Props) => {
-  const { activeIndex, onTabChange, tabOffset } = props;
+  const { activeIndex, onTabChange, tabCurrentY } = props;
   const animatedStyle = useAnimatedStyle(() => {
     const translateY = interpolate(
-      tabOffset.value,
+      tabCurrentY.value,
       [0, 200],
       [0, -200],
       Extrapolation.CLAMP,
