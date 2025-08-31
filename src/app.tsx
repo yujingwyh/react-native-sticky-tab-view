@@ -1,13 +1,15 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import PagerView, { PagerViewProps } from 'react-native-pager-view';
 import { TabBar, tabItems } from './tab-bar.tsx';
 import React, { useRef, useState } from 'react';
-import Animated from 'react-native-reanimated';
 import { TabItem } from './tab-item.tsx';
+import { Header } from './header.tsx';
+import { useSharedValue } from 'react-native-reanimated';
 
 export const App = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const pagerViewRef = useRef<PagerView>(null);
+  const tabOffset = useSharedValue(0);
 
   const onTabChange = (index: number) => {
     setActiveIndex(index);
@@ -19,19 +21,25 @@ export const App = () => {
 
   return (
     <React.Fragment>
-      <Animated.View style={styles.header}>
-        <Text style={styles.headerText}>Header</Text>
-      </Animated.View>
-      <TabBar activeIndex={activeIndex} onTabChange={onTabChange} />
+      <Header tabOffset={tabOffset}></Header>
+      <TabBar
+        tabOffset={tabOffset}
+        activeIndex={activeIndex}
+        onTabChange={onTabChange}
+      />
       <PagerView
         ref={pagerViewRef}
         style={styles.pagerView}
         initialPage={activeIndex}
         onPageSelected={onPageSelected}
       >
-        {tabItems.map(tab => (
+        {tabItems.map((tab, index) => (
           <View key={tab.value}>
-            <TabItem tab={tab} />
+            <TabItem
+              tabOffset={tabOffset}
+              tab={tab}
+              isActive={activeIndex === index}
+            />
           </View>
         ))}
       </PagerView>
@@ -40,21 +48,6 @@ export const App = () => {
 };
 
 const styles = StyleSheet.create({
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 200,
-    zIndex: 2,
-    backgroundColor: '#00f',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerText: {
-    fontSize: 20,
-    color: 'white',
-  },
   pagerView: {
     position: 'absolute',
     left: 0,

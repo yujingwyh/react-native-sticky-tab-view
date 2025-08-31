@@ -1,8 +1,15 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  SharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 
 interface Props {
   activeIndex: number;
   onTabChange: (activeIndex: number) => void;
+  tabOffset: SharedValue<number>;
 }
 
 export const tabItems = [
@@ -11,10 +18,26 @@ export const tabItems = [
 ];
 
 export const TabBar = (props: Props) => {
-  const { activeIndex, onTabChange } = props;
+  const { activeIndex, onTabChange, tabOffset } = props;
+  const animatedStyle = useAnimatedStyle(() => {
+    const translateY = interpolate(
+      tabOffset.value,
+      [0, 200],
+      [0, -200],
+      Extrapolation.CLAMP,
+    );
+
+    return {
+      transform: [
+        {
+          translateY,
+        },
+      ],
+    };
+  });
 
   return (
-    <View style={styles.tabBar}>
+    <Animated.View style={[styles.tabBar, animatedStyle]}>
       {tabItems.map((tab, index) => (
         <TouchableOpacity
           key={tab.value}
@@ -28,7 +51,7 @@ export const TabBar = (props: Props) => {
           </Text>
         </TouchableOpacity>
       ))}
-    </View>
+    </Animated.View>
   );
 };
 
@@ -38,6 +61,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#ccc',
     position: 'absolute',
+    backgroundColor: '#fff',
     top: 200,
     left: 0,
     right: 0,
