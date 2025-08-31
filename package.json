@@ -10,10 +10,12 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native/new-app-screen": "0.81.1",
     "react": "19.1.0",
     "react-native": "0.81.1",
-    "@react-native/new-app-screen": "0.81.1",
-    "react-native-safe-area-context": "^5.5.2"
+    "react-native-reanimated": "^4.1.0",
+    "react-native-safe-area-context": "^5.5.2",
+    "react-native-worklets": "^0.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -34,6 +36,11 @@
     "prettier": "2.8.8",
     "react-test-renderer": "19.1.0",
     "typescript": "^5.8.3"
+  },
+  "reanimated": {
+    "staticFeatureFlags": {
+      "DISABLE_COMMIT_PAUSING_MECHANISM": true
+    }
   },
   "engines": {
     "node": ">=20"
