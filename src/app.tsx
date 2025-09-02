@@ -10,7 +10,6 @@ export const App = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const pagerViewRef = useRef<PagerView>(null);
   const tabCurrentY = useSharedValue(0);
-  const tabStartY = useSharedValue(0);
 
   const onTabChange = (index: number) => {
     setActiveIndex(index);
@@ -38,7 +37,6 @@ export const App = () => {
           <View key={tab.value}>
             <TabItem
               tabCurrentY={tabCurrentY}
-              tabStartY={tabStartY}
               tab={tab}
               isActive={activeIndex === index}
             />

@@ -16,28 +16,37 @@ interface Props {
     value: string;
   };
   tabCurrentY: SharedValue<number>;
-  tabStartY: SharedValue<number>;
 }
 
 const data = Array.from({ length: 100 }, (_, i) => `item-${i}`);
 const maxOffsetY = 200;
 
 export const TabItem = (props: Props) => {
-  const { tabCurrentY, tabStartY } = props;
+  const { tabCurrentY } = props;
   const flatListRef = useAnimatedRef<Animated.FlatList>();
   const isActive = useSharedValue(props.isActive);
 
+  const tabStartY = useSharedValue(0);
+  const scrollLastY = useSharedValue(0);
   const scrollEndY = useSharedValue(0);
   const scrollCurrentY = useSharedValue(0);
 
+  const isProgrammaticScroll = useSharedValue(false);
+
   const scrollHandler = useAnimatedScrollHandler({
-    onBeginDrag() {
-      tabStartY.value = tabCurrentY.value;
+    onBeginDrag(event) {
+      if (!isProgrammaticScroll.value) {
+        tabStartY.value = tabCurrentY.value;
+        scrollLastY.value = event.contentOffset.y;
+      }
     },
     onScroll(event) {
-      scrollCurrentY.value = event.contentOffset.y;
+      if (!isProgrammaticScroll.value) {
+        scrollCurrentY.value = event.contentOffset.y;
+      }
     },
     onMomentumEnd(event) {
+      isProgrammaticScroll.value = false;
       scrollEndY.value = event.contentOffset.y;
     },
   });
@@ -48,19 +57,20 @@ export const TabItem = (props: Props) => {
     }),
     current => {
       if (isActive.value) {
-        if (current.scrollCurrentYValue <= maxOffsetY) {
-          tabCurrentY.value = current.scrollCurrentYValue;
+        if (current.scrollCurrentYValue > scrollLastY.value) {
+          tabCurrentY.value = Math.min(
+            tabCurrentY.value + current.scrollCurrentYValue - scrollLastY.value,
+            maxOffsetY,
+          );
         }
-      }
-    },
-  );
+        if (current.scrollCurrentYValue < scrollLastY.value) {
+          if (current.scrollCurrentYValue < maxOffsetY) {
+            tabCurrentY.value = current.scrollCurrentYValue;
+          }
+        }
 
-  useAnimatedReaction(
-    () => ({
-      tabStartYValue: tabStartY.value,
-    }),
-    () => {
-      scrollEndY.value = scrollCurrentY.value;
+        scrollLastY.value = scrollCurrentY.value;
+      }
     },
   );
 
@@ -71,14 +81,15 @@ export const TabItem = (props: Props) => {
     current => {
       if (!isActive.value) {
         const diff = current.tabCurrentYValue - tabStartY.value;
-        scrollCurrentY.value = scrollEndY.value + diff;
-        scrollTo(flatListRef, 0, scrollCurrentY.value, false);
+        isProgrammaticScroll.value = true;
+        scrollTo(flatListRef, 0, scrollEndY.value + diff, false);
       }
     },
   );
 
   useLayoutEffect(() => {
     isActive.value = props.isActive;
+    isProgrammaticScroll.value = false;
   }, [props.isActive]);
 
   return (
